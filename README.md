@@ -2,11 +2,9 @@
 
 ## Descripción
 
-Proyecto de clasificación supervisada de noticias de AG News en cuatro categorías:
-Business, Sci_Tech, Sports y World.
+Proyecto de clasificación supervisada de noticias de AG News en cuatro categorías: Business, Sci_Tech, Sports y World.
 
-La solución utiliza preprocesamiento de texto, lematización, vectorización TF-IDF
-y Regresión Logística para predecir la categoría de cada noticia.
+La solución utiliza preprocesamiento de texto, lematización, vectorización TF-IDF y Regresión Logística para predecir la categoría de cada noticia.
 
 ## Dataset
 
@@ -15,22 +13,17 @@ Se utilizaron los archivos del Módulo 2:
 - `ag_news_train.csv`: 8.000 noticias.
 - `ag_news_test.csv`: 2.000 noticias.
 
-Ambos archivos contienen las columnas `text` y `label`. Las cuatro categorías
-están representadas de forma equilibrada en ambos conjuntos.
+Ambos archivos contienen las columnas `text` y `label`. Las cuatro categorías están representadas de forma equilibrada en ambos conjuntos.
 
 ## Preprocesamiento
 
-El texto se normaliza convirtiéndolo a minúsculas, decodificando entidades HTML,
-eliminando etiquetas HTML, URLs, correos electrónicos y caracteres no relevantes.
-Luego se utiliza spaCy para lematizar los tokens.
+El texto se normaliza convirtiéndolo a minúsculas, decodificando entidades HTML, eliminando etiquetas HTML, URLs, correos electrónicos y caracteres no relevantes. Luego se utiliza spaCy para lematizar los tokens.
 
 Se conservaron las etiquetas originales del dataset.
 
 ## Experimentación con TF-IDF
 
-Se compararon seis configuraciones usando una división interna del conjunto de
-entrenamiento. La selección se realizó según F1 macro, utilizando accuracy como
-criterio secundario.
+Se compararon seis configuraciones usando una división interna del conjunto de entrenamiento. La selección se realizó según F1 macro, utilizando accuracy como criterio secundario.
 
 | max_features | ngram_range | Accuracy de validación | F1 macro |
 |---:|:---:|---:|---:|
@@ -48,28 +41,19 @@ La configuración seleccionada fue:
 - `min_df=2`
 - `sublinear_tf=True`
 
-En estas pruebas, los unigramas obtuvieron mejores resultados que la combinación
-de unigramas y bigramas. Aumentar el límite a 20.000 no mejoró el resultado
-porque el vocabulario disponible en esa configuración era menor.
+En estas pruebas, los unigramas obtuvieron mejores resultados que la combinación de unigramas y bigramas. Aumentar el límite a 20.000 no mejoró el resultado porque el vocabulario disponible en esa configuración era menor.
 
 ## Modelo elegido
 
-Se eligió Regresión Logística como clasificador de referencia. Es un modelo
-supervisado adecuado para clasificación multiclase y funciona bien con las
-matrices dispersas generadas por TF-IDF. Además, permite establecer una línea
-base clara, eficiente y reproducible.
+Se eligió Regresión Logística como clasificador de referencia. Es un modelo supervisado adecuado para clasificación multiclase y funciona bien con las matrices dispersas generadas por TF-IDF. Además, permite establecer una línea base clara, eficiente y reproducible.
 
 La configuración utilizada fue `max_iter=1000` y `random_state=42`.
 
 ## Prevención de data leakage
 
-La selección de parámetros se realizó mediante una división interna del conjunto
-de entrenamiento. El vectorizador se ajustó exclusivamente con los textos de
-entrenamiento de cada prueba de validación.
+La selección de parámetros se realizó mediante una división interna del conjunto de entrenamiento. El vectorizador se ajustó exclusivamente con los textos de entrenamiento de cada prueba de validación.
 
-Una vez elegida la configuración, se ajustó el vectorizador con los 8.000 textos
-de entrenamiento y se aplicó `transform` a los 2.000 textos de prueba. El
-conjunto de prueba no se utilizó para elegir los parámetros.
+Una vez elegida la configuración, se ajustó el vectorizador con los 8.000 textos de entrenamiento y se aplicó `transform` a los 2.000 textos de prueba. El conjunto de prueba no se utilizó para elegir los parámetros.
 
 ## Resultados finales en el conjunto de prueba
 
@@ -91,9 +75,7 @@ conjunto de prueba no se utilizó para elegir los parámetros.
 
 ## Análisis de errores
 
-La categoría con mayor dificultad fue Business, con un 15,2 % de error.
-Le siguió Sci_Tech, con un 14,4 %. World tuvo un 13,2 % de error, mientras
-que Sports presentó solo un 4 %.
+La categoría con mayor dificultad fue Business, con un 15,2 % de error. Le siguió Sci_Tech, con un 14,4 %. World tuvo un 13,2 % de error, mientras que Sports presentó solo un 4 %.
 
 Las confusiones más frecuentes fueron:
 
@@ -102,17 +84,21 @@ Las confusiones más frecuentes fueron:
 - 28 noticias de World clasificadas como Business.
 - 26 noticias de Business clasificadas como World.
 
-La confusión entre Business y Sci_Tech puede explicarse porque ambas categorías
-comparten vocabulario relacionado con empresas, productos, mercados e innovación.
-Sports se distingue mejor por su vocabulario específico.
+La confusión entre Business y Sci_Tech puede explicarse porque ambas categorías comparten vocabulario relacionado con empresas, productos, mercados e innovación. Sports se distingue mejor por su vocabulario específico.
 
 ## Cómo ejecutar el proyecto
 
 1. Abrir `Clasificador_Supervisado_TFIDF_Final.ipynb` en Google Colab.
 2. Instalar las dependencias indicadas en `requirements.txt`.
-3. Cargar `ag_news_train.csv` y `ag_news_test.csv`.
-4. Ejecutar las celdas en orden.
-5. Revisar el reporte de clasificación y la matriz de confusión.
+3. Instalar el modelo de idioma de spaCy ejecutando el siguiente comando:
+
+   ```bash
+   python -m spacy download en_core_web_sm
+   ```
+
+4. Cargar `ag_news_train.csv` y `ag_news_test.csv`.
+5. Ejecutar las celdas en orden.
+6. Revisar el reporte de clasificación y la matriz de confusión.
 
 ## Tecnologías
 
