@@ -45,7 +45,6 @@ La configuración seleccionada fue la de 10.000 características y unigramas, po
 
 Los parámetros del modelo definitivo fueron:
 
-- `max_features
 `max_features=10000`: limita la cantidad máxima de características.
 
 - `ngram_range=(1,1)`: utiliza unigramas, es decir, palabras individuales.
