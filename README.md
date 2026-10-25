@@ -1,121 +1,127 @@
 # Clasificador Supervisado de Noticias con TF-IDF
 
-## 1. Descripción del proyecto
+## Descripción
 
-Este proyecto implementa un clasificador supervisado de noticias utilizando técnicas de procesamiento de lenguaje natural (NLP) y Machine Learning clásico.
+Proyecto de clasificación supervisada de noticias de AG News en cuatro categorías:
+Business, Sci_Tech, Sports y World.
 
-El objetivo es clasificar noticias del dataset AG News en cuatro categorías: Business, Sci_Tech, Sports y World, a partir del contenido textual.
+La solución utiliza preprocesamiento de texto, lematización, vectorización TF-IDF
+y Regresión Logística para predecir la categoría de cada noticia.
 
-El proyecto forma parte de la preentrega de clasificación supervisada con TF-IDF.
+## Dataset
 
-## 2. Dataset
+Se utilizaron los archivos del Módulo 2:
 
-Se utilizó el corpus AG News, con los siguientes conjuntos:
+- `ag_news_train.csv`: 8.000 noticias.
+- `ag_news_test.csv`: 2.000 noticias.
 
-- Entrenamiento: 8.000 noticias.
-- Prueba: 2.000 noticias.
-- Categorías: Business, Sci_Tech, Sports y World.
+Ambos archivos contienen las columnas `text` y `label`. Las cuatro categorías
+están representadas de forma equilibrada en ambos conjuntos.
 
-Los conjuntos de entrenamiento y prueba se mantuvieron separados durante la vectorización y la evaluación.
+## Preprocesamiento
 
-## 3. Preprocesamiento del texto
+El texto se normaliza convirtiéndolo a minúsculas, decodificando entidades HTML,
+eliminando etiquetas HTML, URLs, correos electrónicos y caracteres no relevantes.
+Luego se utiliza spaCy para lematizar los tokens.
 
-Se reutilizaron las técnicas de preprocesamiento trabajadas en el módulo anterior:
+Se conservaron las etiquetas originales del dataset.
 
-- Limpieza y normalización del texto.
-- Lematización.
-- Eliminación de stop-words.
-- Preparación del texto para su representación numérica.
+## Experimentación con TF-IDF
 
-Para el modelo se utilizó la columna `text_lemmas_no_stop`.
+Se compararon seis configuraciones usando una división interna del conjunto de
+entrenamiento. La selección se realizó según F1 macro, utilizando accuracy como
+criterio secundario.
 
-## 4. Vectorización TF-IDF
+| max_features | ngram_range | Accuracy de validación | F1 macro |
+|---:|:---:|---:|---:|
+| 10.000 | (1, 1) | 0,8925 | 0,8920 |
+| 20.000 | (1, 1) | 0,8925 | 0,8920 |
+| 5.000 | (1, 1) | 0,8900 | 0,8895 |
+| 10.000 | (1, 2) | 0,8831 | 0,8825 |
+| 20.000 | (1, 2) | 0,8831 | 0,8824 |
+| 5.000 | (1, 2) | 0,8812 | 0,8806 |
 
-Se utilizó `TfidfVectorizer` de Scikit-learn para transformar los documentos en vectores numéricos ponderados según la importancia de sus términos.
+La configuración seleccionada fue:
 
-Se compararon tres configuraciones:
+- `max_features=10000`
+- `ngram_range=(1, 1)`
+- `min_df=2`
+- `sublinear_tf=True`
 
-| max_features | ngram_range | Accuracy |
-|---:|:---:|---:|
-| 10.000 | (1,1) | 89,85 % |
-| 20.000 | (1,2) | 89,35 % |
-| 50.000 | (1,2) | 89,30 % |
+En estas pruebas, los unigramas obtuvieron mejores resultados que la combinación
+de unigramas y bigramas. Aumentar el límite a 20.000 no mejoró el resultado
+porque el vocabulario disponible en esa configuración era menor.
 
-La configuración seleccionada fue la de 10.000 características y unigramas, por haber obtenido la mayor exactitud en el conjunto de prueba.
+## Modelo elegido
 
-Los parámetros del modelo definitivo fueron:
+Se eligió Regresión Logística como clasificador de referencia. Es un modelo
+supervisado adecuado para clasificación multiclase y funciona bien con las
+matrices dispersas generadas por TF-IDF. Además, permite establecer una línea
+base clara, eficiente y reproducible.
 
-`max_features=10000`: limita la cantidad máxima de características.
+La configuración utilizada fue `max_iter=1000` y `random_state=42`.
 
-- `ngram_range=(1,1)`: utiliza unigramas, es decir, palabras individuales.
-- `min_df=2`: descarta términos presentes en menos de dos documentos del entrenamiento.
-- `sublinear_tf=True`: aplica una escala logarítmica a la frecuencia de los términos.
+## Prevención de data leakage
 
-Para evitar *data leakage*, el vectorizador se ajustó únicamente con los datos de entrenamiento mediante `fit_transform`. Para el conjunto de prueba se utilizó `transform`.
+La selección de parámetros se realizó mediante una división interna del conjunto
+de entrenamiento. El vectorizador se ajustó exclusivamente con los textos de
+entrenamiento de cada prueba de validación.
 
-## 5. Modelo de clasificación
+Una vez elegida la configuración, se ajustó el vectorizador con los 8.000 textos
+de entrenamiento y se aplicó `transform` a los 2.000 textos de prueba. El
+conjunto de prueba no se utilizó para elegir los parámetros.
 
-Se seleccionó Regresión Logística (`LogisticRegression`) como modelo de referencia por su utilidad en problemas de clasificación de texto y su compatibilidad con matrices dispersas generadas por TF-IDF.
+## Resultados finales en el conjunto de prueba
 
-Parámetros principales:
+- **Accuracy:** 88,30 %
+- **Precision macro:** 88,28 %
+- **Recall macro:** 88,30 %
+- **F1 macro:** 88,27 %
+- **Noticias de prueba:** 2.000
+- **Características TF-IDF finales:** 9.690
 
-- `max_iter=1000`
-- `random_state=42`
+### Métricas por categoría
 
-## 6. Resultados de la evaluación
+| Categoría | Precision | Recall | F1-score | Cantidad |
+|---|---:|---:|---:|---:|
+| Business | 0,8446 | 0,8480 | 0,8463 | 500 |
+| Sci_Tech | 0,8594 | 0,8560 | 0,8577 | 500 |
+| Sports | 0,9284 | 0,9600 | 0,9440 | 500 |
+| World | 0,8986 | 0,8680 | 0,8830 | 500 |
 
-El modelo obtuvo los siguientes resultados sobre el conjunto de prueba:
+## Análisis de errores
 
-- **Accuracy:** 89,85 %.
-- **F1-score macro:** aproximadamente 0,90.
-- **Cantidad de noticias evaluadas:** 2.000.
+La categoría con mayor dificultad fue Business, con un 15,2 % de error.
+Le siguió Sci_Tech, con un 14,4 %. World tuvo un 13,2 % de error, mientras
+que Sports presentó solo un 4 %.
 
-### Resultados por categoría
+Las confusiones más frecuentes fueron:
 
-| Categoría | Precision | Recall | F1-score |
-|---|---:|---:|---:|
-| Business | 0,86 | 0,86 | 0,86 |
-| Sci_Tech | 0,87 | 0,88 | 0,87 |
-| Sports | 0,96 | 0,97 | 0,96 |
-| World | 0,91 | 0,89 | 0,90 |
+- 44 noticias de Sci_Tech clasificadas como Business.
+- 43 noticias de Business clasificadas como Sci_Tech.
+- 28 noticias de World clasificadas como Business.
+- 26 noticias de Business clasificadas como World.
 
-## 7. Análisis de errores
+La confusión entre Business y Sci_Tech puede explicarse porque ambas categorías
+comparten vocabulario relacionado con empresas, productos, mercados e innovación.
+Sports se distingue mejor por su vocabulario específico.
 
-La matriz de confusión mostró que **Sports fue la categoría con mejor desempeño**, con 483 noticias correctamente clasificadas de 500.
+## Cómo ejecutar el proyecto
 
-Las principales confusiones se produjeron entre Business y Sci_Tech:
+1. Abrir `Clasificador_Supervisado_TFIDF_Final.ipynb` en Google Colab.
+2. Instalar las dependencias indicadas en `requirements.txt`.
+3. Cargar `ag_news_train.csv` y `ag_news_test.csv`.
+4. Ejecutar las celdas en orden.
+5. Revisar el reporte de clasificación y la matriz de confusión.
 
-- 41 noticias de Business fueron clasificadas como Sci_Tech.
-- 42 noticias de Sci_Tech fueron clasificadas como Business.
+## Tecnologías
 
-También hubo confusiones entre World y Business. Estas dificultades pueden relacionarse con el vocabulario compartido entre categorías.
+- Python
+- pandas
+- scikit-learn
+- spaCy
+- Matplotlib
+- Seaborn
+- TF-IDF
+- Regresión Logística
 
-## 8. Tecnologías y dependencias
-
-El proyecto se desarrolló en Google Colab con Python 3.13.16.
-
-Versiones registradas:
-
-- pandas 2.2.3
-- scikit-learn 1.6.1
-- matplotlib 3.10.0
-- seaborn 0.13.2
-- nltk 3.9.1
-
-Las dependencias están especificadas en `requirements.txt`.
-
-## 9. Estructura del repositorio
-
-- `EDA_NLP_BoccoMatias_ipynb_.ipynb`: notebook con el desarrollo del proyecto.
-- `requirements.txt`: versiones de las librerías utilizadas.
-- `README.md`: documentación del proyecto.
-
-## 10. Conclusiones
-
-La combinación de TF-IDF y Regresión Logística permitió clasificar noticias en cuatro categorías con una exactitud del 89,85 %.
-
-La comparación de configuraciones mostró que aumentar la cantidad de características e incorporar bigramas no mejoró el resultado en este experimento.
-
-Como futuras mejoras, se propone evaluar otros algoritmos de clasificación, ajustar hiperparámetros y explorar representaciones alternativas del texto.
-
-El proyecto integra preparación de datos, vectorización, entrenamiento, evaluación y análisis de errores propios de un proceso de clasificación supervisada.
